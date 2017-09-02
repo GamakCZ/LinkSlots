@@ -1,0 +1,6 @@
+name: LinkSlots
+api: [3.0.0-ALPHA7]
+version: 1.0.0
+author: GamakCZ
+main: LinkSlots\LinkSlots
+depend: [LinkSlotsAPI]
