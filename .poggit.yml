@@ -3,5 +3,5 @@ branches:
 - master
 projects:
   LinkSlots:
-    path: ""
+    path: "LinkSlots/"
 ...
