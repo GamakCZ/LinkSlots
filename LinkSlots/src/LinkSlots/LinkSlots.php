@@ -2,10 +2,11 @@
 
 namespace LinkSlots;
 
-use LinkSlotsAPI\LinkSlotsAPI;
+use linkslotsapi\API;
 use pocketmine\event\Listener;
-use pocketmine\event\server\QueryRegenerateEvent;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\Task;
+use pocketmine\Server;
 
 /**
  * Class LinkSlots
@@ -14,7 +15,7 @@ use pocketmine\plugin\PluginBase;
 class LinkSlots extends PluginBase implements Listener {
 
     /** @var  string[] $servers */
-    public $servers;
+    public static $servers;
 
     public function onEnable() {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -24,24 +25,28 @@ class LinkSlots extends PluginBase implements Listener {
         if(!is_file($this->getDataFolder()."/config.yml")) {
             $this->saveResource("/config.yml");
         }
-        $this->servers = (array)$this->getConfig()->get("servers");
+        self::$servers = (array)$this->getConfig()->get("servers");
+        $this->loadServers();
+        $this->loadUpdateTask();
     }
 
-    public function getSlots() {
-        $api = LinkSlotsAPI::getInstance();
-        $slots = 0;
-        foreach ($this->servers as $server) {
-            $args = explode(":", $server);
-            $players = (int)$api->getPlayers(strval($args[0]), intval($args[1]));
-            $slots = $slots+$players;
+    private function loadServers() {
+        foreach (self::$servers as $server) {
+            $d = explode(":",$server);
+            API::addServer($d[0], $d[1]);
         }
-        return $slots;
     }
 
-    /**
-     * @param QueryRegenerateEvent $event
-     */
-    public function onQuery(QueryRegenerateEvent $event) {
-        $event->setMaxPlayerCount($this->getSlots());
+    private function loadUpdateTask() {
+        $this->getServer()->getScheduler()->scheduleRepeatingTask(new class extends Task {
+            public function onRun(int $currentTick) {
+                foreach (LinkSlots::$servers as $server) {
+                    $d = explode(":", $server);
+                    $sr = API::getServer($d[0], $d[1]);
+                    Server::getInstance()->getQueryInformation()->setMaxPlayerCount(Server::getInstance()->getQueryInformation()->getMaxPlayerCount()+$sr->getSlots());
+                    Server::getInstance()->getQueryInformation()->setPlayerCount(Server::getInstance()->getQueryInformation()->getPlayerCount()+$sr->getOnlinePlayers());
+                }
+            }
+        }, 20*10);
     }
 }
