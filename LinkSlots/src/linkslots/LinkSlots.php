@@ -43,10 +43,10 @@ class LinkSlots extends PluginBase implements Listener {
                 foreach (LinkSlots::$servers as $server) {
                     $d = explode(":", $server);
                     $sr = API::getServer($d[0], $d[1]);
-                    Server::getInstance()->getQueryInformation()->setMaxPlayerCount(Server::getInstance()->getQueryInformation()->getMaxPlayerCount()+$sr->getSlots());
-                    Server::getInstance()->getQueryInformation()->setPlayerCount(Server::getInstance()->getQueryInformation()->getPlayerCount()+$sr->getOnlinePlayers());
+                    Server::getInstance()->getQueryInformation()->setMaxPlayerCount((int)(Server::getInstance()->getMaxPlayers()+$sr->getSlots()));
+                    Server::getInstance()->getQueryInformation()->setPlayerCount((int)(count(Server::getInstance()->getOnlinePlayers())+$sr->getOnlinePlayers()));
                 }
             }
-        }, 20*10);
+        }, 20*5);
     }
 }
