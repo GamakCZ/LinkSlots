@@ -40,12 +40,16 @@ class LinkSlots extends PluginBase implements Listener {
     private function loadUpdateTask() {
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new class extends Task {
             public function onRun(int $currentTick) {
+                $slots = (int)Server::getInstance()->getMaxPlayers();
+                $online = (int)count(Server::getInstance()->getOnlinePlayers());
                 foreach (LinkSlots::$servers as $server) {
                     $d = explode(":", $server);
                     $sr = API::getServer($d[0], $d[1]);
-                    Server::getInstance()->getQueryInformation()->setMaxPlayerCount((int)(Server::getInstance()->getMaxPlayers()+$sr->getSlots()));
-                    Server::getInstance()->getQueryInformation()->setPlayerCount((int)(count(Server::getInstance()->getOnlinePlayers())+$sr->getOnlinePlayers()));
+                    $slots += $sr->getSlots();
+                    $online += $sr->getOnlinePlayers();
                 }
+                Server::getInstance()->getQueryInformation()->setMaxPlayerCount((int)($slots));
+                Server::getInstance()->getQueryInformation()->setPlayerCount((int)($online));
             }
         }, 20*5);
     }
